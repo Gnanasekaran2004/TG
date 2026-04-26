@@ -1,0 +1,65 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code — contains machine-specific settings, not useful for contributors
+.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ── Environment / Secrets ───────────────────────────────────────────────────
+# NEVER commit this file — it contains live API keys (Gemini, EmailJS, etc.)
+# Create a local .env from .env.example before running the project.
+.env
+
+# ── Firebase Functions ───────────────────────────────────────────────────────
+# npm packages — install via `npm install` inside /functions
+functions/node_modules/
+
+# ── Development scratch files ────────────────────────────────────────────────
+# These are temporary output files generated during development sessions.
+analysis_output*.txt
+analysis_final.txt
+analyze_out.txt
+build_log.txt
+build_out.txt
+build_verbose.txt
+final_analysis.txt
+final_fcm_check.txt
+

@@ -1,0 +1,204 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Users ──────────────────────────────────────────────────────────────
+    match /users/{userId} {
+      // Any authenticated user can read profiles (social feed, chat, friends list).
+      allow read: if request.auth != null;
+
+      // Owner can do anything to their own profile document.
+      allow write: if request.auth != null && request.auth.uid == userId;
+
+      // ANY authenticated user may update ONLY the follower/following counters.
+      // Required because when User A accepts User B's request, User A must
+      // increment User B's followersCount — a cross-user write.
+      allow update: if request.auth != null
+                    && request.resource.data.diff(resource.data)
+                         .affectedKeys()
+                         .hasOnly(['followersCount', 'followingCount']);
+    }
+
+    // ── Trips ──────────────────────────────────────────────────────────────
+    match /trips/{tripId} {
+      // ── Read access: split list vs get ──────────────────────────────────
+      //
+      // WHY the split matters:
+      //   streamAllTrips() uses .orderBy().limit().snapshots() — a Firestore
+      //   QUERY (list operation). For Firestore to execute a query, its security
+      //   rule must be evaluable purely from the query constraints, BEFORE any
+      //   documents are actually read. A rule that checks resource.data fields
+      //   (e.g. visibility) cannot be satisfied by a query with no matching
+      //   where-clause, so Firestore would reject the entire query with
+      //   permission-denied — breaking the social feed.
+      //
+      //   Solution: allow list (queries) for any authenticated user; the
+      //   client already filters private trips from other users in the UI.
+      //   Restrict get (direct document reads) so private trips from other
+      //   users cannot be fetched by UID without the visibility filter.
+
+      // list: used by streamAllTrips(), streamFriendsTrips(), streamUserTrips()
+      allow list: if request.auth != null;
+
+      // get: direct point-read — private trips are owner-only
+      allow get: if request.auth != null
+                 && (resource.data.visibility != 'private'
+                     || resource.data.ownerId == request.auth.uid);
+
+      // FIX B2: Enforce that a new trip's ownerId must match the requester.
+      allow create: if request.auth != null
+                    && request.resource.data.ownerId == request.auth.uid;
+
+      // Only the trip owner can modify or delete the trip.
+      allow update, delete: if request.auth != null
+                            && request.auth.uid == resource.data.ownerId;
+
+      // ── Diary Entries ────────────────────────────────────────────────────
+      // Only the trip owner can read / write / delete their private diary entries.
+      match /entries/{entryId} {
+        allow read, create, update, delete:
+          if request.auth != null
+          && get(/databases/$(database)/documents/trips/$(tripId)).data.ownerId
+             == request.auth.uid;
+      }
+
+      // ── Comments ─────────────────────────────────────────────────────────
+      match /comments/{commentId} {
+        allow read:   if request.auth != null;
+        allow create: if request.auth != null;
+        // Comment author OR trip owner (for cleanup on account deletion) can delete.
+        allow delete: if request.auth != null
+                      && (request.auth.uid == resource.data.authorId
+                          || get(/databases/$(database)/documents/trips/$(tripId))
+                               .data.ownerId == request.auth.uid);
+        // Comments are intentionally not updatable (edit-history concern).
+      }
+
+      // ── Likes ─────────────────────────────────────────────────────────────
+      // likeId must equal the liker's UID (enforced by likePost() on the client).
+      match /likes/{likeId} {
+        allow read: if request.auth != null;
+        // Like owner can create / delete their own like.
+        // Trip owner can also delete any like (for account deletion cleanup).
+        allow write: if request.auth != null
+                     && (request.auth.uid == likeId
+                         || get(/databases/$(database)/documents/trips/$(tripId))
+                              .data.ownerId == request.auth.uid);
+      }
+    }
+
+    // ── Notifications ───────────────────────────────────────────────────────
+    match /notifications/{notifId} {
+      // Only the intended recipient can read, mark-read, or dismiss.
+      allow read, update, delete: if request.auth != null
+                                  && request.auth.uid == resource.data.recipientId;
+      // Any authenticated user can create a notification (like / follow triggers).
+      allow create: if request.auth != null;
+    }
+
+    // ── Follows ─────────────────────────────────────────────────────────────
+    // Account owner can delete their entire /follows/{uid} namespace during account deletion.
+    match /follows/{userId} {
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // /follows/{userId}/followers/{followerId}
+    //   userId     = the person being followed ("target")
+    //   followerId = the person who sent the request ("requester")
+    match /follows/{userId}/followers/{followerId} {
+      allow read: if request.auth != null;
+
+      // Requester creates their own follow request; target or requester can delete
+      // (unfollow / reject / account-deletion cleanup).
+      allow create, delete: if request.auth != null
+                            && (request.auth.uid == followerId
+                                || request.auth.uid == userId);
+
+      // FIX B3: Only the TARGET (userId) may update the status field.
+      // This prevents the requester from self-accepting their own follow request.
+      allow update: if request.auth != null
+                    && request.auth.uid == userId;
+    }
+
+    // /follows/{userId}/following/{targetId}
+    //   userId   = the person whose following list this is
+    //   targetId = the account being followed
+    match /follows/{userId}/following/{targetId} {
+      allow read: if request.auth != null;
+
+      // Only the list owner can create / delete entries in their following list.
+      allow create, delete: if request.auth != null
+                            && request.auth.uid == userId;
+
+      // Both the list owner (userId) and the target (targetId = B) may update
+      // the status — needed so User B can flip A's /following/B entry to 'accepted'.
+      allow update: if request.auth != null
+                    && (request.auth.uid == userId
+                        || request.auth.uid == targetId);
+    }
+
+    // ── Chat ────────────────────────────────────────────────────────────────
+    // Mutual-friend enforcement is client-side (streamChatableFriends).
+    // Server rules ensure authenticated access and prevent sender impersonation.
+    match /chats/{chatId} {
+      // FIX B6: Only allow reading the chat room document (metadata), not writing.
+      // The app never writes to the top-level chat document; all writes go to /messages.
+      allow read: if request.auth != null;
+
+      match /messages/{messageId} {
+        // Any authenticated user can read messages in their chat room.
+        allow read: if request.auth != null;
+
+        // Sender must be the authenticated caller — prevents message impersonation.
+        allow create: if request.auth != null
+                      && request.auth.uid == request.resource.data.senderId;
+
+        // Only the receiver can mark a message as read.
+        allow update: if request.auth != null
+                      && request.auth.uid == resource.data.receiverId;
+
+        // Only the sender can delete their own message.
+        allow delete: if request.auth != null
+                      && request.auth.uid == resource.data.senderId;
+      }
+    }
+
+    // ── OTP Verifications ───────────────────────────────────────────────────
+    // This collection is open to unauthenticated callers because:
+    //   • Registration → user is not yet signed in when OTP is sent / verified
+    //   • Forgot Password → user is unauthenticated before OTP is verified
+    // OTPs expire in 5 minutes, are single-use (used:true) and are deleted on use.
+    //
+    // FIX B4: `list` is explicitly excluded; only point-level operations are allowed.
+    // This prevents anonymous enumeration of all pending OTP documents.
+    match /otp_verifications/{email} {
+      allow get, create, update, delete: if true;
+      // list is intentionally omitted — no one should be able to enumerate OTPs.
+    }
+
+    // ── Account Deletion Feedback ───────────────────────────────────────────
+    // Users write their own deletion feedback; only admins read it (via console).
+    match /account_deletions/{docId} {
+      allow create: if request.auth != null;
+      allow read:   if false; // admin eyes only — read via Firebase console / Admin SDK
+      // update and delete intentionally omitted (write-once records)
+    }
+
+    // ── Registered Emails Index ─────────────────────────────────────────────
+    // Document ID = lowercased email. Only stores { uid, createdAt }.
+    // Public point-read lets the register screen verify uniqueness BEFORE OTP is sent,
+    // without the caller being authenticated (normal for pre-signup flow).
+    //
+    // FIX B5: Create is now UID-locked — the authenticated caller's UID must match
+    // the uid field being written. Prevents any user from squatting on another
+    // person's email by pre-populating this index.
+    match /registered_emails/{email} {
+      allow get:    if true;                // unauthenticated duplicate check ✅
+      allow list:   if false;              // block collection enumeration ✅
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid; // FIX B5 ✅
+      allow update, delete: if false;      // immutable — email registry is permanent ✅
+    }
+
+  }
+}

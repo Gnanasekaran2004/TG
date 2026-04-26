@@ -1,0 +1,102 @@
+================================================================================
+                            LEGAL NOTICE
+                            Trip-GUY Travel Super-App
+================================================================================
+
+Copyright (c) 2026 Gnanasekaran D. All Rights Reserved.
+
+--------------------------------------------------------------------------------
+OWNERSHIP DECLARATION
+--------------------------------------------------------------------------------
+
+This application, "Trip-GUY", including all of its source code, assets,
+documentation, database schemas, UI/UX design, and associated intellectual
+property, was solely conceived, designed, and developed by:
+
+    Gnanasekaran D
+    Email   : sgnana238@gmail.com
+    Phone   : +91 8248094569
+    Country : India
+
+This notice serves as a formal declaration of ownership and copyright for all
+original work contained in this project.
+
+--------------------------------------------------------------------------------
+ORIGINAL AUTHORSHIP
+--------------------------------------------------------------------------------
+
+The following original works are authored exclusively by Gnanasekaran D:
+
+  • Application architecture (Clean Architecture + BLoC + GetIt DI)
+  • All feature modules: Auth, Social Feed, Chat, Diary, Notifications,
+    AI Assistant (TripBot), Profile, Navigation/Live Map
+  • Firestore Security Rules (firestore.rules)
+  • Real-time messaging and read-receipt system
+  • OTP-based email verification flow
+  • MapLibre GL integration with Overpass API and OSRM routing
+  • Gemini Pro AI assistant integration (TripBot)
+  • All UI/UX design, color schemes, animations, and branding
+  • All database collection schemas and indexing strategies
+
+--------------------------------------------------------------------------------
+THIRD-PARTY OPEN-SOURCE COMPONENTS
+--------------------------------------------------------------------------------
+
+This application makes use of the following open-source libraries and services.
+Their respective licenses apply only to those components and do not in any way
+affect the proprietary copyright of Trip-GUY's original code.
+
+  Flutter SDK            — BSD 3-Clause  (https://flutter.dev)
+  Dart SDK               — BSD 3-Clause  (https://dart.dev)
+  flutter_bloc           — MIT           (https://pub.dev/packages/flutter_bloc)
+  get_it                 — MIT           (https://pub.dev/packages/get_it)
+  go_router              — BSD 3-Clause  (https://pub.dev/packages/go_router)
+  equatable              — MIT           (https://pub.dev/packages/equatable)
+  dartz                  — MIT           (https://pub.dev/packages/dartz)
+  google_fonts           — Apache 2.0    (https://pub.dev/packages/google_fonts)
+  flutter_animate        — MIT           (https://pub.dev/packages/flutter_animate)
+  maplibre_gl            — BSD 2-Clause  (https://pub.dev/packages/maplibre_gl)
+  http                   — BSD 3-Clause  (https://pub.dev/packages/http)
+  geolocator             — MIT           (https://pub.dev/packages/geolocator)
+  firebase_core          — Apache 2.0    (https://pub.dev/packages/firebase_core)
+  firebase_auth          — Apache 2.0    (https://pub.dev/packages/firebase_auth)
+  cloud_firestore        — Apache 2.0    (https://pub.dev/packages/cloud_firestore)
+  google_generative_ai   — Apache 2.0    (https://pub.dev/packages/google_generative_ai)
+  flutter_dotenv         — MIT           (https://pub.dev/packages/flutter_dotenv)
+  firebase_messaging     — Apache 2.0    (https://pub.dev/packages/firebase_messaging)
+  flutter_local_notifications — MIT      (https://pub.dev/packages/flutter_local_notifications)
+  image_picker           — Apache 2.0    (https://pub.dev/packages/image_picker)
+  url_launcher           — BSD 3-Clause  (https://pub.dev/packages/url_launcher)
+
+External APIs & Services (governed by their own Terms of Service):
+  Firebase / Google Cloud — https://firebase.google.com/terms
+  Google Gemini AI        — https://ai.google.dev/terms
+  MapLibre GL             — https://maplibre.org
+  OpenFreeMap             — https://openfreemap.org
+  Overpass API / OSM      — https://www.openstreetmap.org/copyright
+  OSRM Routing Engine     — https://project-osrm.org
+  Nominatim / OSM         — https://nominatim.org
+  EmailJS                 — https://www.emailjs.com/legal/terms-of-service
+
+The inclusion of these open-source components does not constitute a waiver of
+any rights in the original, proprietary portions of Trip-GUY.
+
+--------------------------------------------------------------------------------
+TRADEMARK NOTICE
+--------------------------------------------------------------------------------
+
+"Trip-GUY" and the Trip-GUY logo are unregistered trademarks of Gnanasekaran D.
+Unauthorized use is strictly prohibited.
+
+--------------------------------------------------------------------------------
+COPYRIGHT STATEMENT
+--------------------------------------------------------------------------------
+
+Any unauthorized reproduction, distribution, modification, or use of this
+software — in whole or in part — is a violation of copyright law and may result
+in severe civil and criminal penalties, and will be prosecuted to the maximum
+extent possible under the law.
+
+================================================================================
+Copyright (c) 2026 Gnanasekaran D. All Rights Reserved.
+================================================================================
